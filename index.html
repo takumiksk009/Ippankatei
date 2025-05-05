@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -9,20 +8,20 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background-color: #f4f4f4;
+      background-color: #f9f9f9;
       padding: 20px;
     }
 
     h1 {
-      color: #333;
       font-size: 28px;
       margin-bottom: 20px;
+      color: #2c3e50;
     }
 
     .grid-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px 20px;
+      gap: 15px 20px;
       max-width: 600px;
       margin: 0 auto;
     }
@@ -32,43 +31,47 @@
     }
 
     label {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
+      display: block;
       margin-bottom: 5px;
     }
 
     input, select {
-      font-size: 20px;
-      padding: 10px;
+      font-size: 18px;
+      padding: 8px;
       width: 100%;
       text-align: center;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
 
-    input[type="date"] {
-      font-size: 20px;
-      padding: 12px;
-    }
-
     button {
-      font-size: 20px;
-      padding: 12px 20px;
+      font-size: 18px;
+      padding: 12px 24px;
       background-color: #28a745;
       color: white;
       border: none;
-      cursor: pointer;
       border-radius: 5px;
-      margin-top: 20px;
+      cursor: pointer;
     }
 
     button:hover {
       background-color: #218838;
     }
 
+    .auto-result-box {
+      background-color: #e0f7fa;
+      border: 2px solid #26c6da;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 20px;
+    }
+
     #result {
       margin-top: 30px;
-      font-size: 22px;
+      font-size: 20px;
     }
 
     .total-display {
@@ -83,15 +86,6 @@
       font-size: 28px;
       font-weight: bold;
       color: #333;
-    }
-
-    .auto-result-box {
-      background-color: #e0f7fa;
-      border: 2px solid #26c6da;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-      font-size: 20px;
     }
   </style>
 </head>
@@ -114,22 +108,20 @@
 
     <div>
       <label for="currDate">退去検針日</label>
-      <input type="date" id="currDate" />
+      <input type="date" id="currDate">
     </div>
-
     <div>
       <label for="prevDate">前回検針日</label>
-      <input type="date" id="prevDate" />
+      <input type="date" id="prevDate">
     </div>
 
     <div>
       <label for="currMeter">今回指針（㎥）</label>
-      <input type="number" id="currMeter" step="0.1" />
+      <input type="number" id="currMeter" step="0.1">
     </div>
-
     <div>
       <label for="prevMeter">前回指針（㎥）</label>
-      <input type="number" id="prevMeter" step="0.1" />
+      <input type="number" id="prevMeter" step="0.1">
     </div>
 
     <div class="full-width">
@@ -171,14 +163,11 @@
 
       for (const tier of plan.tiers) {
         if (remainingUsage <= 0) break;
-
-        const tierLimit = tier.limit;
-        const tierRange = tierLimit - previousLimit;
+        const tierRange = tier.limit - previousLimit;
         const tierUsage = Math.min(remainingUsage, tierRange);
-
         consumptionRate += tierUsage * tier.rate;
         remainingUsage -= tierUsage;
-        previousLimit = tierLimit;
+        previousLimit = tier.limit;
       }
 
       const subtotal = totalBaseRate + consumptionRate;
@@ -221,60 +210,4 @@
     }
   </script>
 </body>
-=======
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ガス料金計算ツール</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-
-  <h1>一般家庭版　計算アプリ</h1>
-
-  <div class="form-container">
-    <!-- プラン選択 -->
-    <div class="form-group">
-      <label for="plan">料金プラン</label>
-      <select id="plan">
-        <option value="">--選択してください--</option>
-        <option value="1">№1(№51)一般料金</option>
-        <option value="3">№3(№53)一般料金移行</option>
-        <option value="4">№4 市役所、教育委員会</option>
-        <option value="8">№8 都市ガス対策</option>
-        <option value="9">№9 光商会</option>
-        <option value="10">№10 基本1600＋従量530</option>
-      </select>
-    </div>
-
-    <!-- 使用量入力 -->
-    <div class="form-group">
-      <label for="usage">使用量（㎥）</label>
-      <input type="number" id="usage" min="0" step="0.1" placeholder="例: 21.4" />
-    </div>
-
-    <!-- 使用日数入力 -->
-    <div class="form-group">
-      <label for="days">使用日数</label>
-      <input type="number" id="days" min="1" placeholder="例: 30" />
-    </div>
-  </div>
-
-  <button onclick="performCalculation()">計算する</button>
-
-  <div id="result">
-    <p id="baseRate"></p>
-    <p id="consumptionRate"></p>
-    <p id="subtotal"></p>
-    <p id="tax"></p>
-    <div class="total-display">
-      <p id="total"></p>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
-</body>
->>>>>>> 56539ddb418bdcd9302ef8ab79d2585f6bb408d0
 </html>
