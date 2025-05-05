@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>一般家庭版 計算アプリ</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .full-width {
+      grid-column: 1 / 3;
+    }
+
+    label {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      font-size: 20px;
+      padding: 10px;
+      width: 100%;
+      text-align: center;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    input[type="date"] {
+      font-size: 20px;
+      padding: 12px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 12px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 22px;
+    }
+
+    .total-display {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #ffcc00;
+      border-radius: 10px;
+      display: inline-block;
+    }
+
+    #total {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .auto-result-box {
+      background-color: #e0f7fa;
+      border: 2px solid #26c6da;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>一般家庭版 計算アプリ</h1>
+
+  <div class="grid-container">
+    <div class="full-width">
+      <label for="plan">料金プラン</label>
+      <select id="plan">
+        <option value="">--選択してください--</option>
+        <option value="1">№1(№51)一般料金</option>
+        <option value="3">№3(№53)一般料金移行</option>
+        <option value="4">№4 市役所、教育委員会</option>
+        <option value="8">№8 都市ガス対策</option>
+        <option value="9">№9 光商会</option>
+        <option value="10">№10 基本1600＋従量530</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="currDate">退去検針日</label>
+      <input type="date" id="currDate" />
+    </div>
+
+    <div>
+      <label for="prevDate">前回検針日</label>
+      <input type="date" id="prevDate" />
+    </div>
+
+    <div>
+      <label for="currMeter">今回指針（㎥）</label>
+      <input type="number" id="currMeter" step="0.1" />
+    </div>
+
+    <div>
+      <label for="prevMeter">前回指針（㎥）</label>
+      <input type="number" id="prevMeter" step="0.1" />
+    </div>
+
+    <div class="full-width">
+      <button onclick="calculateFromMeterAndBill()">使用量・日数を自動計算</button>
+      <div id="autoResult" class="auto-result-box"></div>
+    </div>
+  </div>
+
+  <div id="result">
+    <p id="baseRate"></p>
+    <p id="consumptionRate"></p>
+    <p id="subtotal"></p>
+    <p id="tax"></p>
+    <div class="total-display">
+      <p id="total"></p>
+    </div>
+  </div>
+
+  <script>
+    const plans = {
+      1: { base: 1950, tiers: [{ limit: 20, rate: 730 }, { limit: Infinity, rate: 680 }] },
+      3: { base: 1950, tiers: [{ limit: 10, rate: 600 }, { limit: Infinity, rate: 500 }] },
+      4: { base: 1100, tiers: [{ limit: Infinity, rate: 400 }] },
+      8: { base: 800, tiers: [{ limit: 1.4, rate: 0 }, { limit: Infinity, rate: 720 }] },
+      9: { base: 1900, tiers: [{ limit: 5, rate: 610 }, { limit: Infinity, rate: 520 }] },
+      10: { base: 1600, tiers: [{ limit: Infinity, rate: 530 }] }
+    };
+
+    function calculateBill(planNumber, usage, days) {
+      const plan = plans[planNumber];
+      if (!plan) return null;
+
+      const dailyBaseRate = plan.base / 30;
+      const totalBaseRate = Math.ceil(dailyBaseRate * days);
+
+      let consumptionRate = 0;
+      let remainingUsage = usage;
+      let previousLimit = 0;
+
+      for (const tier of plan.tiers) {
+        if (remainingUsage <= 0) break;
+
+        const tierLimit = tier.limit;
+        const tierRange = tierLimit - previousLimit;
+        const tierUsage = Math.min(remainingUsage, tierRange);
+
+        consumptionRate += tierUsage * tier.rate;
+        remainingUsage -= tierUsage;
+        previousLimit = tierLimit;
+      }
+
+      const subtotal = totalBaseRate + consumptionRate;
+      const tax = Math.floor(subtotal * 0.1);
+      const total = Math.floor(subtotal + tax);
+
+      return {
+        baseRate: totalBaseRate,
+        consumptionRate: Math.round(consumptionRate),
+        subtotal: Math.floor(subtotal),
+        tax: tax,
+        total: total
+      };
+    }
+
+    function calculateFromMeterAndBill() {
+      const planNumber = parseInt(document.getElementById('plan').value);
+      const prevDate = new Date(document.getElementById('prevDate').value);
+      const currDate = new Date(document.getElementById('currDate').value);
+      const prevMeter = parseFloat(document.getElementById('prevMeter').value);
+      const currMeter = parseFloat(document.getElementById('currMeter').value);
+
+      if (!plans[planNumber] || isNaN(prevMeter) || isNaN(currMeter) || currMeter < prevMeter || isNaN(prevDate.getTime()) || isNaN(currDate.getTime())) {
+        alert("正しい入力を確認してください。");
+        return;
+      }
+
+      const usage = parseFloat((currMeter - prevMeter).toFixed(2));
+      const days = Math.max(1, Math.ceil((currDate - prevDate) / (1000 * 60 * 60 * 24)));
+
+      document.getElementById('autoResult').innerHTML = `使用量: <strong>${usage}</strong>㎥ ／ 使用日数: <strong>${days}</strong>日`;
+
+      const result = calculateBill(planNumber, usage, days);
+
+      document.getElementById('baseRate').textContent = `基本料金 = ¥${result.baseRate}`;
+      document.getElementById('consumptionRate').textContent = `従量料金 = ¥${result.consumptionRate}`;
+      document.getElementById('subtotal').textContent = `小計 = ¥${result.subtotal}`;
+      document.getElementById('tax').textContent = `消費税 = ¥${result.tax}`;
+      document.getElementById('total').textContent = `合計 = ¥${result.total}`;
+    }
+  </script>
+</body>
+</html>
