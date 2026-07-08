@@ -155,7 +155,7 @@
       if (!plan) return null;
 
       const dailyBaseRate = plan.base / 30;
-      const totalBaseRate = Math.ceil(dailyBaseRate * days);
+const totalBaseRate = Math.ceil(Number((dailyBaseRate * days).toFixed(10)));
 
       let consumptionRate = 0;
       let remainingUsage = usage;
